@@ -14,10 +14,50 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum TipoItem {
+  SERVICIO
+  PRODUCTO
+}
+
+model Item {
+  id          Int      @id @default(autoincrement())
+  tipo        TipoItem
+  nombre      String
+  descripcion String?
+  precio      Decimal  @db.Decimal(10, 2)
+
+  confirmacionItems ConfirmacionItem[]
+}
+
 model Cliente {
-  id        Int      @id @default(autoincrement())
-  nombre    String
-  apellidos String
-  email     String   @unique
-  createdAt DateTime @default(now())
+  id              Int      @id @default(autoincrement())
+  nombre          String
+  apellidos       String
+  email           String   @unique
+  numeroDocumento String   @unique
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  confirmaciones Confirmacion[]
+}
+
+model Confirmacion {
+  id                 Int      @id @default(autoincrement())
+  clienteId          Int
+  cliente            Cliente  @relation(fields: [clienteId], references: [id])
+  fechaHoraEvento    DateTime
+  descuentoServicios Int      @default(0)
+  descuentoProductos Int      @default(0)
+  createdAt          DateTime @default(now())
+
+  items ConfirmacionItem[]
+}
+
+model ConfirmacionItem {
+  id              Int          @id @default(autoincrement())
+  confirmacionId  Int
+  confirmacion    Confirmacion @relation(fields: [confirmacionId], references: [id])
+  itemId          Int
+  item            Item         @relation(fields: [itemId], references: [id])
+  precioAlMomento Decimal      @db.Decimal(10, 2)
 }
