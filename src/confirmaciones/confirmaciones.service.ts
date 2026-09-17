@@ -1,4 +1,5 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
+import { JwtService } from "@nestjs/jwt";
 import { ClientesService } from "../clientes/clientes.service.js";
 import { Item, TipoItem } from "../generated/prisma/client.js";
 import { PrismaService } from "../prisma/prisma.service.js";
@@ -9,10 +10,11 @@ export class ConfirmacionesService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly clientesService: ClientesService,
+    private readonly jwtService: JwtService,
   ) {}
 
   async crear(dto: CrearConfirmacionDto) {
-    return this.prisma.$transaction(async (tx) => {
+    const confirmacion = await this.prisma.$transaction(async (tx) => {
       const { cliente } = await this.clientesService.buscarOCrear(
         dto.cliente,
         tx,
@@ -46,6 +48,20 @@ export class ConfirmacionesService {
         },
         include: { items: { include: { item: true } }, cliente: true },
       });
+    });
+
+    const accessToken = this.jwtService.sign({
+      clienteId: confirmacion.clienteId,
+    });
+
+    return { ...confirmacion, accessToken };
+  }
+
+  buscarPorCliente(clienteId: number) {
+    return this.prisma.confirmacion.findMany({
+      where: { clienteId },
+      include: { items: { include: { item: true } }, cliente: true },
+      orderBy: { createdAt: "desc" },
     });
   }
 

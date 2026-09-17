@@ -18,6 +18,7 @@ async function bootstrap() {
       "API para confirmación de asistencia al evento de promociones",
     )
     .setVersion("1.0")
+    .addBearerAuth()
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup("docs", app, document);
