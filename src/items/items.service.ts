@@ -22,6 +22,18 @@ export class ItemsService {
     });
   }
 
+  buscarAdmin(dto: BuscarItemsDto) {
+    return this.prisma.item.findMany({
+      where: {
+        tipo: dto.tipo,
+        nombre: dto.search
+          ? { contains: dto.search, mode: "insensitive" }
+          : undefined,
+      },
+      orderBy: { nombre: "asc" },
+    });
+  }
+
   crear(dto: CrearItemDto) {
     return this.prisma.item.create({ data: dto });
   }
@@ -36,6 +48,14 @@ export class ItemsService {
     return this.prisma.item.update({
       where: { id },
       data: { activo: false },
+    });
+  }
+
+  async activar(id: number) {
+    await this.buscarPorIdOFallar(id);
+    return this.prisma.item.update({
+      where: { id },
+      data: { activo: true },
     });
   }
 

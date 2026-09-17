@@ -35,6 +35,13 @@ export class ItemsController {
 
   @ApiBearerAuth()
   @UseGuards(AdminAuthGuard)
+  @Get("admin")
+  buscarAdmin(@Query() dto: BuscarItemsDto) {
+    return this.itemsService.buscarAdmin(dto);
+  }
+
+  @ApiBearerAuth()
+  @UseGuards(AdminAuthGuard)
   @Post()
   crear(@Body() dto: CrearItemDto) {
     return this.itemsService.crear(dto);
@@ -52,5 +59,12 @@ export class ItemsController {
   @Patch(":id/desactivar")
   desactivar(@Param("id") id: string) {
     return this.itemsService.desactivar(Number(id));
+  }
+
+  @ApiBearerAuth()
+  @UseGuards(AdminAuthGuard)
+  @Patch(":id/activar")
+  activar(@Param("id") id: string) {
+    return this.itemsService.activar(Number(id));
   }
 }
