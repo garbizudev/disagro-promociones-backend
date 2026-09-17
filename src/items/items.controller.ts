@@ -1,5 +1,16 @@
-import { Body, Controller, Get, Post, Query } from "@nestjs/common";
-import { ApiTags } from "@nestjs/swagger";
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Query,
+  UseGuards,
+} from "@nestjs/common";
+import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
+import { AdminAuthGuard } from "../auth/admin-auth.guard.js";
+import { ActualizarItemDto } from "./dto/actualizar-item.dto.js";
 import { BuscarItemsDto } from "./dto/buscar-items.dto.js";
 import { CrearItemDto } from "./dto/crear-item.dto.js";
 import { ItemsService } from "./items.service.js";
@@ -14,8 +25,24 @@ export class ItemsController {
     return this.itemsService.buscar(dto);
   }
 
+  @ApiBearerAuth()
+  @UseGuards(AdminAuthGuard)
   @Post()
   crear(@Body() dto: CrearItemDto) {
     return this.itemsService.crear(dto);
+  }
+
+  @ApiBearerAuth()
+  @UseGuards(AdminAuthGuard)
+  @Patch(":id")
+  actualizar(@Param("id") id: string, @Body() dto: ActualizarItemDto) {
+    return this.itemsService.actualizar(Number(id), dto);
+  }
+
+  @ApiBearerAuth()
+  @UseGuards(AdminAuthGuard)
+  @Patch(":id/desactivar")
+  desactivar(@Param("id") id: string) {
+    return this.itemsService.desactivar(Number(id));
   }
 }

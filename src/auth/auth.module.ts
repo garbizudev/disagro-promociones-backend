@@ -1,5 +1,8 @@
 import { Global, Module } from "@nestjs/common";
 import { JwtModule } from "@nestjs/jwt";
+import { AdminAuthGuard } from "./admin-auth.guard.js";
+import { AuthController } from "./auth.controller.js";
+import { AuthService } from "./auth.service.js";
 import { JwtAuthGuard } from "./jwt-auth.guard.js";
 
 @Global()
@@ -10,7 +13,8 @@ import { JwtAuthGuard } from "./jwt-auth.guard.js";
       signOptions: { expiresIn: "30d" },
     }),
   ],
-  providers: [JwtAuthGuard],
-  exports: [JwtModule, JwtAuthGuard],
+  controllers: [AuthController],
+  providers: [AuthService, JwtAuthGuard, AdminAuthGuard],
+  exports: [JwtModule, JwtAuthGuard, AdminAuthGuard],
 })
 export class AuthModule {}

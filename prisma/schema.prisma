@@ -25,8 +25,17 @@ model Item {
   nombre      String
   descripcion String?
   precio      Decimal  @db.Decimal(10, 2)
+  activo      Boolean  @default(true)
 
   confirmacionItems ConfirmacionItem[]
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  username  String   @unique
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now())
 }
 
 model Cliente {

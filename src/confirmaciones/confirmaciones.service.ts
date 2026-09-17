@@ -1,8 +1,9 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
 import { ClientesService } from "../clientes/clientes.service.js";
-import { Item, TipoItem } from "../generated/prisma/client.js";
+import { Item, Prisma, TipoItem } from "../generated/prisma/client.js";
 import { PrismaService } from "../prisma/prisma.service.js";
+import { BuscarConfirmacionesDto } from "./dto/buscar-confirmaciones.dto.js";
 import { CrearConfirmacionDto } from "./dto/crear-confirmacion.dto.js";
 
 @Injectable()
@@ -60,6 +61,34 @@ export class ConfirmacionesService {
   buscarPorCliente(clienteId: number) {
     return this.prisma.confirmacion.findMany({
       where: { clienteId },
+      include: { items: { include: { item: true } }, cliente: true },
+      orderBy: { createdAt: "desc" },
+    });
+  }
+
+  buscarTodas(dto: BuscarConfirmacionesDto) {
+    const where: Prisma.ConfirmacionWhereInput = {};
+
+    if (dto.search) {
+      where.cliente = {
+        OR: [
+          { nombre: { contains: dto.search, mode: "insensitive" } },
+          { apellidos: { contains: dto.search, mode: "insensitive" } },
+          { email: { contains: dto.search, mode: "insensitive" } },
+          { numeroDocumento: { contains: dto.search, mode: "insensitive" } },
+        ],
+      };
+    }
+
+    if (dto.fecha) {
+      const inicio = new Date(dto.fecha);
+      const fin = new Date(inicio);
+      fin.setDate(fin.getDate() + 1);
+      where.fechaHoraEvento = { gte: inicio, lt: fin };
+    }
+
+    return this.prisma.confirmacion.findMany({
+      where,
       include: { items: { include: { item: true } }, cliente: true },
       orderBy: { createdAt: "desc" },
     });
