@@ -13,6 +13,7 @@ import { AdminAuthGuard } from "../auth/admin-auth.guard.js";
 import { ActualizarItemDto } from "./dto/actualizar-item.dto.js";
 import { BuscarItemsDto } from "./dto/buscar-items.dto.js";
 import { CrearItemDto } from "./dto/crear-item.dto.js";
+import { TopItemsDto } from "./dto/top-items.dto.js";
 import { ItemsService } from "./items.service.js";
 
 @ApiTags("items")
@@ -23,6 +24,13 @@ export class ItemsController {
   @Get()
   buscar(@Query() dto: BuscarItemsDto) {
     return this.itemsService.buscar(dto);
+  }
+
+  @ApiBearerAuth()
+  @UseGuards(AdminAuthGuard)
+  @Get("populares")
+  populares(@Query() dto: TopItemsDto) {
+    return this.itemsService.populares(dto);
   }
 
   @ApiBearerAuth()
