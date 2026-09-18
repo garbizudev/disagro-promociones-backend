@@ -3,7 +3,6 @@ import { Type } from "class-transformer";
 import {
   ArrayMinSize,
   IsArray,
-  IsDateString,
   IsInt,
   ValidateNested,
 } from "class-validator";
@@ -15,9 +14,9 @@ export class CrearConfirmacionDto {
   @Type(() => CrearClienteDto)
   cliente: CrearClienteDto;
 
-  @ApiProperty({ example: "2026-10-20T15:00:00.000Z" })
-  @IsDateString()
-  fechaHoraEvento: string;
+  @ApiProperty({ example: 1 })
+  @IsInt()
+  eventoId: number;
 
   @ApiProperty({ type: [Number], example: [1, 2, 3] })
   @IsArray()

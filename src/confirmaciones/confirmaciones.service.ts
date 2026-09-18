@@ -22,6 +22,14 @@ export class ConfirmacionesService {
         tx,
       );
 
+      const evento = await tx.evento.findUnique({
+        where: { id: dto.eventoId },
+      });
+
+      if (!evento || !evento.activo) {
+        throw new NotFoundException("El evento seleccionado no existe");
+      }
+
       const items = await tx.item.findMany({
         where: { id: { in: dto.itemIds } },
       });
@@ -38,7 +46,7 @@ export class ConfirmacionesService {
       return tx.confirmacion.create({
         data: {
           clienteId: cliente.id,
-          fechaHoraEvento: new Date(dto.fechaHoraEvento),
+          eventoId: evento.id,
           descuentoServicios,
           descuentoProductos,
           items: {
@@ -48,7 +56,11 @@ export class ConfirmacionesService {
             })),
           },
         },
-        include: { items: { include: { item: true } }, cliente: true },
+        include: {
+          items: { include: { item: true } },
+          cliente: true,
+          evento: true,
+        },
       });
     });
 
@@ -62,7 +74,11 @@ export class ConfirmacionesService {
   buscarPorCliente(clienteId: number) {
     return this.prisma.confirmacion.findMany({
       where: { clienteId },
-      include: { items: { include: { item: true } }, cliente: true },
+      include: {
+        items: { include: { item: true } },
+        cliente: true,
+        evento: true,
+      },
       orderBy: { createdAt: "desc" },
     });
   }
@@ -72,7 +88,11 @@ export class ConfirmacionesService {
   ): Promise<
     PaginatedResult<
       Prisma.ConfirmacionGetPayload<{
-        include: { items: { include: { item: true } }; cliente: true };
+        include: {
+          items: { include: { item: true } };
+          cliente: true;
+          evento: true;
+        };
       }>
     >
   > {
@@ -93,13 +113,17 @@ export class ConfirmacionesService {
       const inicio = new Date(dto.fecha);
       const fin = new Date(inicio);
       fin.setDate(fin.getDate() + 1);
-      where.fechaHoraEvento = { gte: inicio, lt: fin };
+      where.evento = { fechaHora: { gte: inicio, lt: fin } };
     }
 
     const [data, total] = await Promise.all([
       this.prisma.confirmacion.findMany({
         where,
-        include: { items: { include: { item: true } }, cliente: true },
+        include: {
+          items: { include: { item: true } },
+          cliente: true,
+          evento: true,
+        },
         orderBy: { createdAt: "desc" },
         skip: (dto.page - 1) * dto.pageSize,
         take: dto.pageSize,

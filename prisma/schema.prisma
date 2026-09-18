@@ -50,11 +50,21 @@ model Cliente {
   confirmaciones Confirmacion[]
 }
 
+model Evento {
+  id        Int      @id @default(autoincrement())
+  fechaHora DateTime
+  activo    Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  confirmaciones Confirmacion[]
+}
+
 model Confirmacion {
   id                 Int      @id @default(autoincrement())
   clienteId          Int
   cliente            Cliente  @relation(fields: [clienteId], references: [id])
-  fechaHoraEvento    DateTime
+  eventoId           Int
+  evento             Evento   @relation(fields: [eventoId], references: [id])
   descuentoServicios Int      @default(0)
   descuentoProductos Int      @default(0)
   createdAt          DateTime @default(now())
