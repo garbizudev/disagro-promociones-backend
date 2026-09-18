@@ -1,6 +1,9 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
+import type { PaginatedResult } from "../common/paginated-result.interface.js";
+import { Item } from "../generated/prisma/client.js";
 import { PrismaService } from "../prisma/prisma.service.js";
 import { ActualizarItemDto } from "./dto/actualizar-item.dto.js";
+import { BuscarItemsAdminDto } from "./dto/buscar-items-admin.dto.js";
 import { BuscarItemsDto } from "./dto/buscar-items.dto.js";
 import { CrearItemDto } from "./dto/crear-item.dto.js";
 import { TopItemsDto } from "./dto/top-items.dto.js";
@@ -22,16 +25,33 @@ export class ItemsService {
     });
   }
 
-  buscarAdmin(dto: BuscarItemsDto) {
-    return this.prisma.item.findMany({
-      where: {
-        tipo: dto.tipo,
-        nombre: dto.search
-          ? { contains: dto.search, mode: "insensitive" }
-          : undefined,
-      },
-      orderBy: { nombre: "asc" },
-    });
+  async buscarAdmin(
+    dto: BuscarItemsAdminDto,
+  ): Promise<PaginatedResult<Item>> {
+    const where = {
+      tipo: dto.tipo,
+      nombre: dto.search
+        ? { contains: dto.search, mode: "insensitive" as const }
+        : undefined,
+    };
+
+    const [data, total] = await Promise.all([
+      this.prisma.item.findMany({
+        where,
+        orderBy: { nombre: "asc" },
+        skip: (dto.page - 1) * dto.pageSize,
+        take: dto.pageSize,
+      }),
+      this.prisma.item.count({ where }),
+    ]);
+
+    return {
+      data,
+      total,
+      page: dto.page,
+      pageSize: dto.pageSize,
+      totalPages: Math.ceil(total / dto.pageSize),
+    };
   }
 
   crear(dto: CrearItemDto) {

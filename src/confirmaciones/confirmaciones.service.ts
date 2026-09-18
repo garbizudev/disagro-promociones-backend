@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
 import { ClientesService } from "../clientes/clientes.service.js";
+import type { PaginatedResult } from "../common/paginated-result.interface.js";
 import { Item, Prisma, TipoItem } from "../generated/prisma/client.js";
 import { PrismaService } from "../prisma/prisma.service.js";
 import { BuscarConfirmacionesDto } from "./dto/buscar-confirmaciones.dto.js";
@@ -66,7 +67,15 @@ export class ConfirmacionesService {
     });
   }
 
-  buscarTodas(dto: BuscarConfirmacionesDto) {
+  async buscarTodas(
+    dto: BuscarConfirmacionesDto,
+  ): Promise<
+    PaginatedResult<
+      Prisma.ConfirmacionGetPayload<{
+        include: { items: { include: { item: true } }; cliente: true };
+      }>
+    >
+  > {
     const where: Prisma.ConfirmacionWhereInput = {};
 
     if (dto.search) {
@@ -87,11 +96,24 @@ export class ConfirmacionesService {
       where.fechaHoraEvento = { gte: inicio, lt: fin };
     }
 
-    return this.prisma.confirmacion.findMany({
-      where,
-      include: { items: { include: { item: true } }, cliente: true },
-      orderBy: { createdAt: "desc" },
-    });
+    const [data, total] = await Promise.all([
+      this.prisma.confirmacion.findMany({
+        where,
+        include: { items: { include: { item: true } }, cliente: true },
+        orderBy: { createdAt: "desc" },
+        skip: (dto.page - 1) * dto.pageSize,
+        take: dto.pageSize,
+      }),
+      this.prisma.confirmacion.count({ where }),
+    ]);
+
+    return {
+      data,
+      total,
+      page: dto.page,
+      pageSize: dto.pageSize,
+      totalPages: Math.ceil(total / dto.pageSize),
+    };
   }
 
   private calcularDescuentos(items: Item[]) {

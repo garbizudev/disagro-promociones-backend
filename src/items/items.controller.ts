@@ -11,6 +11,7 @@ import {
 import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
 import { AdminAuthGuard } from "../auth/admin-auth.guard.js";
 import { ActualizarItemDto } from "./dto/actualizar-item.dto.js";
+import { BuscarItemsAdminDto } from "./dto/buscar-items-admin.dto.js";
 import { BuscarItemsDto } from "./dto/buscar-items.dto.js";
 import { CrearItemDto } from "./dto/crear-item.dto.js";
 import { TopItemsDto } from "./dto/top-items.dto.js";
@@ -36,7 +37,7 @@ export class ItemsController {
   @ApiBearerAuth()
   @UseGuards(AdminAuthGuard)
   @Get("admin")
-  buscarAdmin(@Query() dto: BuscarItemsDto) {
+  buscarAdmin(@Query() dto: BuscarItemsAdminDto) {
     return this.itemsService.buscarAdmin(dto);
   }
 
